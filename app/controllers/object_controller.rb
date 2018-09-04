@@ -48,7 +48,7 @@ class ObjectController < ApplicationController
   end
 
   def index
-    render(file: "#{Rails.root}/public/401.html", status: 401, layout: false) unless @object.user_has_read_permission?(current_uid)
+    render(file: "#{Rails.root}/public/401.html", status: 401, layout: false) unless current_user_can_read?(@object)
   end
 
   def download

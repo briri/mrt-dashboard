@@ -66,4 +66,8 @@ class InvVersion < ActiveRecord::Base
   def exceeds_download_size?
     total_actual_size > APP_CONFIG['max_download_size']
   end
+
+  def user_has_read_permission?(uid)
+    inv_object.user_has_read_permission?(uid)
+  end
 end

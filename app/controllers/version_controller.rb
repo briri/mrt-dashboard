@@ -38,7 +38,7 @@ class VersionController < ApplicationController
   end
 
   def index
-    render(file: "#{Rails.root}/public/401.html", status: 401, layout: false) unless @version.inv_object.user_has_read_permission?(current_uid)
+    render(file: "#{Rails.root}/public/401.html", status: 401, layout: false) unless current_user_can_read?(@version)
   end
 
   def async
