@@ -8,11 +8,13 @@ module Rack
 end
 
 class ApplicationController < ActionController::Base
+  include AccessMixin
   include DuaMixin
   include Encoder
   include ErrorMixin
   include NumberMixin
   include PaginationMixin
+  include UserAndGroupMixin
 
   helper_method(
     :available_groups,
@@ -59,44 +61,7 @@ class ApplicationController < ActionController::Base
     params[:version] = latest_version.to_s
   end
 
-  def current_user_can_download?(object)
-    object.user_can_download?(current_uid)
-  end
-
-  # Returns true if the user can upload to the session group
-  def current_user_can_write_to_collection?
-    session[:group_id] && current_group.user_has_permission?(current_uid, 'write')
-  end
-
-  # Return the groups which the user may be a member of
-  def available_groups
-    @available_groups ||= begin
-      current_user.groups
-        .sort_by { |g| g.description.downcase }
-        .map { |g| { id: g.id, description: g.description, user_permissions: g.user_permissions(current_user.login) } }
-    end
-  end
-
   private
-
-  # Return the current user. Uses either the session user OR if the
-  # user supplied HTTP basic auth info, uses that. Returns nil if
-  # there is no session user and HTTP basic auth did not succeed
-  def current_user
-    @current_user ||= begin
-      User.find_by_id(session[:uid]) || User.from_auth_header(request.headers['HTTP_AUTHORIZATION'])
-    end
-  end
-
-  # either return the uid from the session OR get the user id from
-  # basic auth. Will not hit LDAP unless using basic auth
-  def current_uid
-    session[:uid] || (current_user && current_user.uid)
-  end
-
-  def current_user_displayname
-    session[:user_displayname] ||= current_user.displayname
-  end
 
   # if a user is not logged in then it will default to looging them in as a guest user
   # if the object is not public then the user will need to navigate to the login page and
@@ -113,12 +78,7 @@ class ApplicationController < ActionController::Base
   def require_user_or_401
     render(status: 401, text: '') && return unless current_user
   end
-
   # :nocov:
-
-  def current_group
-    @_current_group ||= Group.find(session[:group_id])
-  end
 
   def max_download_size_pretty
     @max_download_size_pretty ||= number_to_storage_size(APP_CONFIG['max_download_size'])
