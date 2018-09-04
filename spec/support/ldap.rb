@@ -4,7 +4,9 @@ require 'support/ark'
 # ------------------------------------------------------------
 # LDAP
 
+# TODO: use LDAP_CONFIG['guest_user']
 GUEST_USER_ID = 'anonymous'.freeze
+
 PERMISSIONS_ALL = %w[read write download admin].freeze
 PERMISSIONS_READ_ONLY = %w[read download].freeze
 PERMISSIONS_VIEW_ONLY = %w[read].freeze

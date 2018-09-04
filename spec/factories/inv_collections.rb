@@ -14,5 +14,9 @@ FactoryBot.define do
       read_privilege 'restricted'
       download_privilege 'restricted'
     end
+
+    factory :download_restricted_collection do
+      download_privilege 'restricted'
+    end
   end
 end

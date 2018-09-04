@@ -49,6 +49,12 @@ def log_in_with(user_id, password)
   wait_for_ajax!
 end
 
+def log_in_as_guest!
+  visit login_path
+  click_button 'Guest'
+  wait_for_ajax!
+end
+
 def log_out!
   # faster than unless page.has_content?, see https://blog.codeship.com/faster-rails-tests/
   # return if page.has_no_content?('Logout')
