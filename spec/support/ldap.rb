@@ -19,7 +19,11 @@ def to_name(user_id)
   user_id.classify.gsub(/([A-Z])/, ' \1').strip
 end
 
-def mock_collection(name:, id: nil, ark: nil)
+def mock_ldap_for_collection(inv_collection)
+  name = inv_collection.name
+  id = inv_collection.mnemonic
+  ark = inv_collection.ark
+
   id ||= to_id(name)
   ark ||= ArkHelper.next_ark('collection')
   group_ldap = {
@@ -32,14 +36,6 @@ def mock_collection(name:, id: nil, ark: nil)
   allow(Group::LDAP).to receive(:fetch_by_ark_id).with(ark).and_return(group_ldap)
   allow(Group::LDAP).to receive(:get_user_permissions).with(anything, id, User::LDAP).and_return([])
   id
-end
-
-def mock_ldap_for_collection(inv_collection)
-  mock_collection(
-    name: inv_collection.name,
-    id: inv_collection.mnemonic,
-    ark: inv_collection.ark
-  )
 end
 
 def mock_user(name: nil, id: nil, password:, tzregion: nil, telephonenumber: nil)
@@ -74,17 +70,17 @@ end
 
 def mock_permissions_all(user_id, group_id_or_ids)
   gids = Array(group_id_or_ids)
-  mock_permissions(user_id, gids.map { |gid| [gid, PERMISSIONS_ALL] }.to_h)
+  mock_permissions(user_id, gids.map {|gid| [gid, PERMISSIONS_ALL]}.to_h)
 end
 
 def mock_permissions_read_only(user_id, group_id_or_ids)
   gids = Array(group_id_or_ids)
-  mock_permissions(user_id, gids.map { |gid| [gid, PERMISSIONS_READ_ONLY] }.to_h)
+  mock_permissions(user_id, gids.map {|gid| [gid, PERMISSIONS_READ_ONLY]}.to_h)
 end
 
 def mock_permissions_view_only(user_id, group_id_or_ids)
   gids = Array(group_id_or_ids)
-  mock_permissions(user_id, gids.map { |gid| [gid, PERMISSIONS_VIEW_ONLY] }.to_h)
+  mock_permissions(user_id, gids.map {|gid| [gid, PERMISSIONS_VIEW_ONLY]}.to_h)
 end
 
 def mock_permissions(user_id, perms_by_group_id)
