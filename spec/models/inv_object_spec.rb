@@ -45,7 +45,9 @@ describe InvObject do
       @collection_id = mock_ldap_for_collection(collection)
     end
 
-    it 'is false when user has no permissions' do
+    it 'is false for restricted collection when user has no permissions' do
+      collection.download_privilege = 'restricted'
+      collection.save!
       expect(obj.user_can_download?(user_id)).to eq(false)
     end
 
