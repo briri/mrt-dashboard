@@ -47,6 +47,7 @@ class CollectionController < ApplicationController
   private
 
   def find_all(collection_ark)
+    # TODO: use the collection object we have
     InvObject.joins(:inv_collections)
       .where('inv_collections.ark = ?', collection_ark)
       .order('inv_objects.modified desc')
@@ -64,6 +65,7 @@ class CollectionController < ApplicationController
   end
 
   def find_by_full_text(collection_ark, terms)
+    # TODO: use the collection object we have
     # new, more efficient full text query (thanks Debra)
     where_clause = "(MATCH (sha_dublinkernels.value) AGAINST (\"#{terms.map { |_t| '? ' }.join('')}\"))"
     InvObject
