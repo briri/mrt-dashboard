@@ -15,8 +15,10 @@ describe 'profile' do
       tzregion: @tzregion,
       telephonenumber: @telephonenumber
     )
-    col_id = mock_collection(name: 'Collection 1')
-    mock_permissions(user_id, { col_id => PERMISSIONS_ALL })
+    collection = create(:private_collection, name: 'Private Collection', mnemonic: 'private_collection')
+    collection_id = mock_ldap_for_collection(collection)
+    mock_permissions_all(user_id, collection_id)
+
     log_in_with(user_id, password)
   end
 

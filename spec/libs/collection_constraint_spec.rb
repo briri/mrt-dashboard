@@ -24,8 +24,9 @@ describe CollectionConstraint do
     end
 
     it 'returns true for an ARK if we find a matching group' do
-      group_ark = 'ark:/whatever'
-      mock_collection(name: 'whatever', id: 'whatever_id', ark: group_ark)
+      collection = create(:private_collection, name: 'Private Collection', mnemonic: 'private_collection')
+      mock_ldap_for_collection(collection)
+      group_ark = collection.ark
 
       params[:group] = group_ark
       expect(constraint.matches?(request)).to eq(true)
