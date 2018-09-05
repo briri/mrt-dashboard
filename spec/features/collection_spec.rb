@@ -9,52 +9,76 @@ describe 'collections' do
 
   attr_reader :index_path
 
-  describe 'private' do
+  before(:each) do
+    @password = 'correcthorsebatterystaple'
+    @user_id = mock_user(name: 'Jane Doe', password: password)
+
+    @collection = create(:private_collection, name: 'Collection 1', mnemonic: 'collection_1')
+    @collection_id = mock_ldap_for_collection(collection)
+
+    @index_path = url_for(controller: :collection, action: :index, group: collection_id, only_path: true)
+  end
+
+  after(:each) do
+    log_out!
+  end
+
+  describe 'index' do
+    attr_reader :inv_objects
+
     before(:each) do
-      @password = 'correcthorsebatterystaple'
-      @user_id = mock_user(name: 'Jane Doe', password: password)
-
-      @collection = create(:private_collection, name: 'Collection 1', mnemonic: 'collection_1')
-      @collection_id = mock_ldap_for_collection(collection)
-
-      @index_path = url_for(controller: :collection, action: :index, group: collection_id, only_path: true)
+      @inv_objects = Array.new(6) do |i|
+        init = (65 + i).chr
+        create(
+          :inv_object,
+          erc_who: "Doe, Jane #{init}.",
+          erc_what: "Object #{i}",
+          erc_when: "2018-01-0#{i}"
+        )
+      end
+      collection.inv_objects << inv_objects
     end
 
     after(:each) do
-      log_out!
+      expect(page).not_to have_content('calculating') # indicates ajax count failure
     end
 
-    describe 'index' do
-      attr_reader :inv_objects
-
+    describe 'happy path' do
       before(:each) do
-        @inv_objects = Array.new(6) do |i|
-          init = (65 + i).chr
-          create(
-            :inv_object,
-            erc_who: "Doe, Jane #{init}.",
-            erc_what: "Object #{i}",
-            erc_when: "2018-01-0#{i}"
-          )
-        end
-        collection.inv_objects << inv_objects
+        mock_permissions_all(user_id, collection_id)
+        log_in_with(user_id, password)
       end
 
-      after(:each) do
-        expect(page).not_to have_content('calculating') # indicates ajax count failure
+      it 'should display the collection name' do
+        expect(page).to have_content("Collection: #{collection.name}")
       end
 
-      describe 'happy path' do
-        before(:each) do
-          mock_permissions_all(user_id, collection_id)
-          log_in_with(user_id, password)
+      it 'should list the objects' do
+        inv_objects.each do |obj|
+          expect(page).to have_content(obj.ark)
+          expect(page).to have_content(obj.erc_who)
+          expect(page).to have_content(obj.erc_what)
+          expect(page).to have_content(obj.erc_when)
         end
+      end
 
-        it 'should display the collection name' do
-          expect(page).to have_content("Collection: #{collection.name}")
-        end
+      it 'should let the user navigate to an object' do
+        obj = inv_objects[0]
+        click_link(obj.ark)
+        expect(page).to have_content("Object: #{obj.ark}")
+      end
 
-        it 'should list the objects' do
+      it 'should display an "Add Object" link' do
+        add_obj_link = find_link('Add object')
+        expect(add_obj_link).not_to be_nil
+        add_obj_link.click
+        expect(page.title).to include('Add Object')
+      end
+
+      describe 'search' do
+        it 'finds by author keywords' do
+          fill_in('terms', with: 'Jane')
+          click_button 'Go'
           inv_objects.each do |obj|
             expect(page).to have_content(obj.ark)
             expect(page).to have_content(obj.erc_who)
@@ -63,136 +87,69 @@ describe 'collections' do
           end
         end
 
-        it 'should let the user navigate to an object' do
+        it 'finds by substring' do
+          fill_in('terms', with: 'Jan')
+          click_button 'Go'
+          inv_objects.each do |obj|
+            expect(page).to have_content(obj.ark)
+            expect(page).to have_content(obj.erc_who)
+            expect(page).to have_content(obj.erc_what)
+            expect(page).to have_content(obj.erc_when)
+          end
+        end
+
+        it 'finds by ark' do
           obj = inv_objects[0]
-          click_link(obj.ark)
-          expect(page).to have_content("Object: #{obj.ark}")
+          ark = obj.ark
+          fill_in('terms', with: ark)
+          click_button 'Go'
+
+          expect(page).to have_content(obj.ark)
+          expect(page).to have_content(obj.erc_who)
+          expect(page).to have_content(obj.erc_what)
+          expect(page).to have_content(obj.erc_when)
         end
 
-        it 'should display an "Add Object" link' do
-          add_obj_link = find_link('Add object')
-          expect(add_obj_link).not_to be_nil
-          add_obj_link.click
-          expect(page.title).to include('Add Object')
-        end
+        it 'finds by arks' do
+          expected_objects = [1, 3, 5].map {|i| inv_objects[i]}
+          arks = expected_objects.map(&:ark)
+          fill_in('terms', with: arks.join(' '))
+          click_button 'Go'
 
-        describe 'search' do
-          it 'finds by author keywords' do
-            fill_in('terms', with: 'Jane')
-            click_button 'Go'
-            inv_objects.each do |obj|
-              expect(page).to have_content(obj.ark)
-              expect(page).to have_content(obj.erc_who)
-              expect(page).to have_content(obj.erc_what)
-              expect(page).to have_content(obj.erc_when)
-            end
-          end
-
-          it 'finds by substring' do
-            fill_in('terms', with: 'Jan')
-            click_button 'Go'
-            inv_objects.each do |obj|
-              expect(page).to have_content(obj.ark)
-              expect(page).to have_content(obj.erc_who)
-              expect(page).to have_content(obj.erc_what)
-              expect(page).to have_content(obj.erc_when)
-            end
-          end
-
-          it 'finds by ark' do
-            obj = inv_objects[0]
-            ark = obj.ark
-            fill_in('terms', with: ark)
-            click_button 'Go'
-
+          expected_objects.each do |obj|
             expect(page).to have_content(obj.ark)
             expect(page).to have_content(obj.erc_who)
             expect(page).to have_content(obj.erc_what)
             expect(page).to have_content(obj.erc_when)
           end
 
-          it 'finds by arks' do
-            expected_objects = [1, 3, 5].map { |i| inv_objects[i] }
-            arks = expected_objects.map(&:ark)
-            fill_in('terms', with: arks.join(' '))
-            click_button 'Go'
-
-            expected_objects.each do |obj|
-              expect(page).to have_content(obj.ark)
-              expect(page).to have_content(obj.erc_who)
-              expect(page).to have_content(obj.erc_what)
-              expect(page).to have_content(obj.erc_when)
-            end
-
-            (inv_objects - expected_objects).each do |obj|
-              expect(page).not_to have_content(obj.ark)
-              expect(page).not_to have_content(obj.erc_who)
-              expect(page).not_to have_content(obj.erc_what)
-              expect(page).not_to have_content(obj.erc_when)
-            end
+          (inv_objects - expected_objects).each do |obj|
+            expect(page).not_to have_content(obj.ark)
+            expect(page).not_to have_content(obj.erc_who)
+            expect(page).not_to have_content(obj.erc_what)
+            expect(page).not_to have_content(obj.erc_when)
           end
         end
       end
-
-      it 'requires a user' do
-        visit(index_path)
-        expect(page).to have_content('Not authorized')
-      end
-
-      it 'requires read permissions' do
-        log_in_with(user_id, password)
-        visit(index_path)
-        expect(page).to have_content('Not authorized')
-      end
-
-      it 'requires a valid group' do
-        mock_permissions_all(user_id, collection_id)
-        allow(Group).to receive(:find).with(collection_id).and_raise(LdapMixin::LdapException)
-        log_in_with(user_id, password)
-        visit(index_path)
-        expect(page).to have_content("doesn't exist")
-      end
-    end
-  end
-
-  describe 'public' do
-
-    attr_reader :inv_objects
-
-    before(:each) do
-
-      @collection = create(:inv_collection, name: 'Public Collection 1', mnemonic: 'public_collection_1')
-      @collection_id = mock_ldap_for_collection(collection)
-
-      @index_path = url_for(controller: :collection, action: :index, group: collection_id, only_path: true)
     end
 
-    after(:each) do
-      log_out!
+    it 'requires a user' do
+      visit(index_path)
+      expect(page).to have_content('Not authorized')
     end
 
-    describe 'index' do
-      it 'accepts the guest user' do
-        mock_permissions_read_only(LDAP_CONFIG['guest_user'], collection_id)
-        log_in_as_guest!
+    it 'requires read permissions' do
+      log_in_with(user_id, password)
+      visit(index_path)
+      expect(page).to have_content('Not authorized')
+    end
 
-        visit(index_path)
-        expect(page).not_to have_content('Not authorized')
-      end
-
-      skip 'does not require a user' do
-        visit(index_path)
-        expect(page).not_to have_content('Not authorized')
-      end
-
-      skip 'accepts any user' do
-        @password = 'correcthorsebatterystaple'
-        @user_id = mock_user(name: 'Jane Doe', password: password)
-
-        log_in_with(user_id, password)
-        visit(index_path)
-        expect(page).not_to have_content('Not authorized')
-      end
+    it 'requires a valid group' do
+      mock_permissions_all(user_id, collection_id)
+      allow(Group).to receive(:find).with(collection_id).and_raise(LdapMixin::LdapException)
+      log_in_with(user_id, password)
+      visit(index_path)
+      expect(page).to have_content("doesn't exist")
     end
   end
 end

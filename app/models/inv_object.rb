@@ -119,17 +119,15 @@ class InvObject < ActiveRecord::Base
   end
 
   def user_has_read_permission?(uid)
-    group.user_has_read_permission?(uid)
+    inv_collection.user_has_read_permission?(uid)
   end
 
   def user_can_download?(uid)
-    permissions = group.user_permissions(uid)
-    if permissions.member?('admin')
-      true
-    elsif in_embargo?
-      false
+    if in_embargo?
+      permissions = group.user_permissions(uid)
+      permissions.member?('admin')
     else
-      permissions.member?('download')
+      inv_collection.user_has_download_permission?(uid)
     end
   end
 end
