@@ -18,4 +18,21 @@ class InvCollection < ActiveRecord::Base
       .order('inv_objects.modified desc')
       .includes(:inv_versions, :inv_dublinkernels)
   end
+
+  def read_public?
+    read_privilege == 'public'
+  end
+
+  def download_public?
+    download_privilege == 'public'
+  end
+
+  def user_has_read_permission?(uid)
+    read_public? || group.user_has_read_permission?(uid)
+  end
+
+  def user_has_download_permission?(uid)
+    download_public? || group.user_has_permission?(uid, 'download')
+  end
+
 end

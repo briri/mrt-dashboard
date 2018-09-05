@@ -5,7 +5,7 @@ class CollectionController < ApplicationController
   before_filter :require_request_group
 
   before_filter do
-    raise(ActiveResource::UnauthorizedAccess, NO_ACCESS) unless current_user_can_read?(@request_group)
+    raise(ActiveResource::UnauthorizedAccess, NO_ACCESS) unless current_user_can_read?(collection)
   end
 
   # Load the group specified in the params[:group]
@@ -79,9 +79,14 @@ class CollectionController < ApplicationController
 
   # rubocop:disable Naming/AccessorMethodName
   def set_session_group(group)
+    # TODO: stop putting collections in the session in the first place
     session[:group_id]          = group.id
     session[:group_ark]         = group.ark_id
     session[:group_description] = group.description
   end
   # rubocop:enable Naming/AccessorMethodName
+
+  def collection
+    @collection ||= @request_group.inv_collection
+  end
 end

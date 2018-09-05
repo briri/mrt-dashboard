@@ -9,7 +9,10 @@ describe 'access control' do
 
   attr_reader :collection
   attr_reader :collection_id
-  attr_reader :collection_index
+
+  def collection_index
+    url_for(controller: :collection, action: :index, group: collection_id, only_path: true)
+  end
 
   before(:each) do
     @password = 'correcthorsebatterystaple'
@@ -24,8 +27,6 @@ describe 'access control' do
       @collection = create(:private_collection, name: 'Private Collection', mnemonic: 'private_collection')
       @collection_id = mock_ldap_for_collection(collection)
       mock_permissions_all(user_id, collection_id)
-
-      @collection_index = url_for(controller: :collection, action: :index, group: collection_id, only_path: true)
     end
 
     describe 'collection' do
