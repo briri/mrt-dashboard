@@ -10,7 +10,6 @@ describe 'login' do
     @password = 'correcthorsebatterystaple'
     @user_id = mock_user(name: user_name, password: password)
 
-
     collection = create(:private_collection, name: 'Private Collection', mnemonic: 'private_collection')
     collection_id = mock_ldap_for_collection(collection)
     mock_permissions_all(user_id, collection_id)

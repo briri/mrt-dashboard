@@ -33,7 +33,7 @@ describe 'access control' do
     @version = object.current_version
 
     producer_files = Array.new(3) do |i|
-      size = 1024 * (2 ** i)
+      size = 1024 * (2**i)
       create(
         :inv_file,
         inv_object: object,
@@ -44,7 +44,7 @@ describe 'access control' do
         mime_type: 'application/octet-stream'
       )
     end
-    @basenames = producer_files.map {|f| f.pathname.sub(%r{^producer/}, '')}
+    @basenames = producer_files.map { |f| f.pathname.sub(%r{^producer/}, '') }
   end
 
   before(:each) do
@@ -128,7 +128,7 @@ describe 'access control' do
         basenames.each { |b| expect(page).not_to have_link(b) }
       end
     end
-    
+
     describe 'version' do
       it 'should allow user access' do
         log_in_with(user_id, password)

@@ -111,7 +111,7 @@ describe 'collections' do
         end
 
         it 'finds by arks' do
-          expected_objects = [1, 3, 5].map {|i| inv_objects[i]}
+          expected_objects = [1, 3, 5].map { |i| inv_objects[i] }
           arks = expected_objects.map(&:ark)
           fill_in('terms', with: arks.join(' '))
           click_button 'Go'
