@@ -32,19 +32,21 @@ describe 'access control' do
     collection.inv_objects << object
     @version = object.current_version
 
-    producer_files = Array.new(3) do |i|
-      size = 1024 * (2**i)
-      create(
-        :inv_file,
-        inv_object: object,
-        inv_version: object.current_version,
-        pathname: "producer/file-#{i}.bin",
-        full_size: size,
-        billable_size: size,
-        mime_type: 'application/octet-stream'
-      )
-    end
+    producer_files = Array.new(3) { |i| init_file(i) }
     @basenames = producer_files.map { |f| f.pathname.sub(%r{^producer/}, '') }
+  end
+
+  def init_file(i)
+    size = 1024 * (2**i)
+    create(
+      :inv_file,
+      inv_object: object,
+      inv_version: object.current_version,
+      pathname: "producer/file-#{i}.bin",
+      full_size: size,
+      billable_size: size,
+      mime_type: 'application/octet-stream'
+    )
   end
 
   before(:each) do
