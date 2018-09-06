@@ -132,5 +132,14 @@ describe 'collections' do
         end
       end
     end
+
+    it 'requires a valid group' do
+      mock_permissions_all(user_id, collection_id)
+      allow(Group).to receive(:find).with(collection_id).and_raise(LdapMixin::LdapException)
+      log_in_with(user_id, password)
+      visit(index_path)
+      expect(page).to have_content("doesn't exist")
+    end
+
   end
 end
