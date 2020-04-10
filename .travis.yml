@@ -13,7 +13,7 @@ notifications:
       - eric.lopatin@ucop.edu
 
 addons:
-  chrome: stable
+  chrome: stable --no-sandbox
   apt:
     update: true
 
