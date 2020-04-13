@@ -23,8 +23,6 @@ gem 'unicode'
 gem 'uuidtools'
 gem 'will_paginate'
 
-gem 'rake', '~> 12.3.3'
-
 group :development do
   gem 'web-console', '~> 2.0'
 end

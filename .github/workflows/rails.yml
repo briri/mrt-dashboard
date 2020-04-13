@@ -23,6 +23,11 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y mysql-client libmysqlclient-dev
 
+    - name: 'Install Bundler'
+      run: |
+        gem install bundler -v '1.17.2'
+        bundle config path vendor/bundle
+
     # Try to retrieve the gems from the cache
     - name: 'Cache Gems'
       uses: actions/cache@v1
@@ -32,10 +37,8 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gem-
 
-    - name: 'Install Bundler'
-      run: |
-        gem install bundler -v '1.17.2'
-        bundle config path vendor/bundle
+    - name: 'Run Bundler'
+      run: bundle install --jobs 4 --retry 3
 
     # Startup MySQL
     - name: 'Start MySQL'
@@ -48,6 +51,4 @@ jobs:
       run: ./travis-prep.sh
 
     - name: Build and test with Rake
-      run: |
-        bundle install --jobs 4 --retry 3
-        bundle exec rake
+      run: bundle exec rake
