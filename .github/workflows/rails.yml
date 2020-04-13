@@ -9,7 +9,7 @@ jobs:
 
     env:
       RAILS_ENV: test
-      RUBY_VERSION: 2.4.4
+      RUBY_VERSION: 2.6.3
 
     steps:
     - uses: actions/checkout@v2
