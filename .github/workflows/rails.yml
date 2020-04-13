@@ -9,18 +9,13 @@ jobs:
 
     env:
       RAILS_ENV: test
+      RUBY_VERSION: 2.4.4
 
     steps:
     - uses: actions/checkout@v2
 
-    # Extract the Ruby version from the Gemfile.lock
-    - name: 'Determine Ruby Version'
-      run: echo ::set-env name=RUBY_VERSION::$(echo `cat ./.ruby-version`)
-
-    - name: Set up Ruby using version defined in Gemfile.lock
+    - name: Set up Ruby
       uses: actions/setup-ruby@v1
-      with:
-        ruby-version: ${{ env.RUBY_VERSION }}
 
     # Install the necessary MySQL dev packages
     - name: 'Install Mysql Packages'
