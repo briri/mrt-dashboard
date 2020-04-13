@@ -299,6 +299,3 @@ DEPENDENCIES
   web-console (~> 2.0)
   webmock (~> 3.0)
   will_paginate
-
-BUNDLED WITH
-   1.17.1
