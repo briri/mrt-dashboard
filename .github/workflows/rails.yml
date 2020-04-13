@@ -33,8 +33,14 @@ jobs:
           ${{ runner.os }}-gem-
 
     - name: 'Install Bundler'
-      run: gem install bundler
+      run: |
+        gem install bundler
+        bundle config path vendor/bundle
 
+    # Startup MySQL
+    - name: 'Start MySQL'
+      run: sudo systemctl start mysql
+      
     - name: 'Setup Test DB'
       run: bundle exec rake db:setup
 
